@@ -26,9 +26,18 @@ def run_script(bot, update):
         for file in os.listdir('scripts/'):
             if re.match('^%s\.[a-z]+$' % command, file):
                 bot.sendChatAction(chat_id=update.message.chat.id, action=ChatAction.TYPING)
+                #/home/irccat/pycat/scripts/test.py pusherrobot #hacman thinkl33t ?test
                 procArgs = ['scripts/' + file]
-                if len(tmp_cmd) > 1:
-                    procArgs.extend(tmp_cmd[1:])
+                procArgs.append("@PusherRobot")
+                procArgs.append(str(update.message.chat.id))
+                if update.message.from_user.username:
+                    procArgs.append(update.message.from_user.username)
+                else:
+                    procArgs.append(update.message.from_user.first_name)
+
+                procArgs.append(update.message.text)
+
+                print(procArgs)
 
                 proc = subprocess.Popen(procArgs, stdout=subprocess.PIPE)
                 stdout = proc.stdout
