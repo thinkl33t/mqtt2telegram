@@ -1,0 +1,6 @@
+telegram:
+  token: 'Bot Token Here'
+  chat_id:  '@telegram_channel'
+mqtt:
+  server: mqttserver
+  name: mqtt2telegram
