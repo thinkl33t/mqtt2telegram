@@ -3,7 +3,7 @@
 import mosquitto
 import yaml
 
-config_f = open('../config.yaml')
+config_f = open('config.yaml')
 config = yaml.safe_load(config_f)
 config_f.close()
 
