@@ -58,9 +58,15 @@ for file in os.listdir('scripts/'):
     u.dispatcher.addTelegramCommandHandler(command[0], run_script)
 u.start_polling()
 
+lastmsg = ("", 0, 2, 0) # txt, id, counter, time
 def send_to_bot(message):
-    global bot, config
-    bot.sendMessage(chat_id=config['telegram']['chat_id'], text=message, parse_mode=ParseMode.MARKDOWN, disable_notification=True)
+    global bot, config, lastmsg
+    if lastmsg[0] == message and time.time() - lastmsg[3] < 60:
+        bot.editMessageText(chat_id=config['telegram']['chat_id'], message_id=lastmsg[1], text="{} ({})".format(message, lastmsg[2]), parse_mode=ParseMode.MARKDOWN)
+        lastmsg = (lastmsg[0], lastmsg[1], lastmsg[2] + 1, time.time())
+    else:
+        m = bot.sendMessage(chat_id=config['telegram']['chat_id'], text=message, parse_mode=ParseMode.MARKDOWN, disable_notification=True)
+        lastmsg = (message, m.message_id, 2, time.time())
 
 def on_message(mosq, obj, msg):
     if msg.topic == 'door/outer/opened/username':
