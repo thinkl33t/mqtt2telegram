@@ -1,0 +1,4 @@
+paho-mqtt>=1.2,<2
+python-telegram-bot>=7.0.1,<8
+PyYAML>=3.12,<4
+
