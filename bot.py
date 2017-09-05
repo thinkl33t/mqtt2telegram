@@ -71,7 +71,7 @@ def send_to_bot(message, increment=False):
 
 def on_message(mosq, obj, msg):
     if msg.topic == 'door/outer/opened/username':
-        send_to_bot("*%s* opened the outer door." % msg.payload.decode('utf-8'), increment = True)
+        send_to_bot("*%s* opened the outer door." % msg.payload.decode('utf-8'), increment = (msg.payload != b'MANUAL OVERRIDE KEY'))
     elif msg.topic == 'door/outer/buzzer':
         send_to_bot("%s" % random.choice(['Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'rezzuB']), increment = True)
     elif msg.topic == 'door/outer/invalidcard':
