@@ -61,7 +61,6 @@ u.start_polling()
 def send_to_bot(message):
     global bot, config
     bot.sendMessage(chat_id=config['telegram']['chat_id'], text=message, parse_mode=ParseMode.MARKDOWN, disable_notification=True)
-
     
 _someone_waiting_outside = False
 def on_message(mosq, obj, msg):
@@ -79,7 +78,7 @@ def on_message(mosq, obj, msg):
         send_to_bot("Shutter Opened!")
     elif msg.topic == 'door/shutter/state/closed':
         send_to_bot("Shutter Closed!")
-    elif msg.topic == 'door/outer' and msg.payload == 'opened':
+    elif msg.topic == 'door/outer' and msg.payload == 'opened' and _someone_waiting_outside:
         send_to_bot("Door opened")
         _someone_waiting_outside = False
 
