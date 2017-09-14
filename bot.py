@@ -68,8 +68,9 @@ def on_message(mosq, obj, msg):
     if msg.topic == 'door/outer/opened/username':
         send_to_bot("*%s* opened the outer door." % msg.payload)
     elif msg.topic == 'door/outer/buzzer':
-        send_to_bot("%s" % random.choice(['Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'rezzuB']))
-        _someone_waiting_outside = True
+        polarity = random.choice([1, 1, 1, 1, 1, 1, 1, 1, 1, -1])
+        send_to_bot("Buzzer"[::polarity])
+        _someone_waiting_outside = True if polarity > 0 else polarity
     elif msg.topic == 'door/outer/invalidcard':
         send_to_bot("Unknown card at door")
     elif msg.topic == 'bot/outgoing':
@@ -79,7 +80,7 @@ def on_message(mosq, obj, msg):
     elif msg.topic == 'door/shutter/state/closed':
         send_to_bot("Shutter Closed!")
     elif msg.topic == 'door/outer' and msg.payload == 'opened' and _someone_waiting_outside:
-        send_to_bot("Door opened")
+        send_to_bot("Door opened"[::_someone_waiting_outside])
         _someone_waiting_outside = False
 
 mqttc = mosquitto.Mosquitto(config['mqtt']['name'])
