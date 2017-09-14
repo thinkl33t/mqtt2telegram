@@ -68,12 +68,16 @@ def send_to_bot(message, increment=False):
     else:
         m = u.bot.sendMessage(chat_id=config['telegram']['chat_id'], text=message, parse_mode=ParseMode.MARKDOWN, disable_notification=True)
         lastmsg = (message, m.message_id, 2, time.time())
+ 
+_someone_waiting_outside = False
 
 def on_message(mosq, obj, msg):
+    global _someone_waiting_outside
     if msg.topic == 'door/outer/opened/username':
         send_to_bot("*%s* opened the outer door." % msg.payload.decode('utf-8'), increment = (msg.payload != b'MANUAL OVERRIDE KEY'))
     elif msg.topic == 'door/outer/buzzer':
         send_to_bot("%s" % random.choice(['Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'rezzuB']), increment = True)
+        _someone_waiting_outside = True
     elif msg.topic == 'door/outer/invalidcard':
         end_to_bot("Unknown card at door", increment = True)
     elif msg.topic == 'bot/outgoing':
@@ -82,10 +86,14 @@ def on_message(mosq, obj, msg):
         send_to_bot("Shutter Opened!", increment = True)
     elif msg.topic == 'door/shutter/state/closed':
         send_to_bot("Shutter Closed!", increment = True)
+    elif msg.topic == 'door/outer' and msg.payload == 'opened' and _someone_waiting_outside:
+        send_to_bot("Door opened")
+        _someone_waiting_outside = False
 
 mqttc = mqtt.Client(config['mqtt']['name'])
 while True:
     mqttc.connect(config['mqtt']['server'])
+    mqttc.subscribe("door/outer")
     mqttc.subscribe("door/outer/#")
     mqttc.subscribe("bot/outgoing")
     mqttc.subscribe("door/shutter/state/#")
