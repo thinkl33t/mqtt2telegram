@@ -62,16 +62,16 @@ def send_to_bot(message):
     global bot, config
     bot.sendMessage(chat_id=config['telegram']['chat_id'], text=message, parse_mode=ParseMode.MARKDOWN, disable_notification=True)
     
-_someone_waiting_outside = False
+_someone_waiting_outside = 1 # 1 is False here
 def on_message(mosq, obj, msg):
     global _someone_waiting_outside
     if msg.topic == 'door/outer/opened/username':
         send_to_bot("*%s* opened the outer door." % msg.payload)
-        _someone_waiting_outside = False
+        _someone_waiting_outside = 1
     elif msg.topic == 'door/outer/buzzer':
         polarity = random.choice([1] * 9 + [-1])
         send_to_bot("Buzzer"[::polarity])
-        _someone_waiting_outside = polarity
+        _someone_waiting_outside = polarity * time.time()
     elif msg.topic == 'door/outer/invalidcard':
         send_to_bot("Unknown card at door")
     elif msg.topic == 'bot/outgoing':
@@ -80,9 +80,10 @@ def on_message(mosq, obj, msg):
         send_to_bot("Shutter Opened!")
     elif msg.topic == 'door/shutter/state/closed':
         send_to_bot("Shutter Closed!")
-    elif msg.topic == 'door/outer' and msg.payload == 'opened' and _someone_waiting_outside:
-        send_to_bot("Door opened"[::_someone_waiting_outside])
-        _someone_waiting_outside = False
+    elif msg.topic == 'door/outer' and msg.payload == 'opened' \
+     and time.time() - abs(_someone_waiting_outside) <= 300:
+        send_to_bot("Door opened"[::math.copysign(1, _someone_waiting_outside)])
+        _someone_waiting_outside = 1
 
 mqttc = mosquitto.Mosquitto(config['mqtt']['name'])
 while True:
