@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import logging
+import math
 
 from telegram import Updater,Bot,ParseMode, ChatAction
 import mosquitto
@@ -82,7 +83,7 @@ def on_message(mosq, obj, msg):
         send_to_bot("Shutter Closed!")
     elif msg.topic == 'door/outer' and msg.payload == 'opened' \
      and time.time() - abs(_someone_waiting_outside) <= 300:
-        send_to_bot("Door opened"[::math.copysign(1, _someone_waiting_outside)])
+        send_to_bot("Door opened"[::int(math.copysign(1, _someone_waiting_outside))])
         _someone_waiting_outside = 1
 
 mqttc = mosquitto.Mosquitto(config['mqtt']['name'])
