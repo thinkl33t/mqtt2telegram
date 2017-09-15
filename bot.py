@@ -67,6 +67,7 @@ def on_message(mosq, obj, msg):
     global _someone_waiting_outside
     if msg.topic == 'door/outer/opened/username':
         send_to_bot("*%s* opened the outer door." % msg.payload)
+        _someone_waiting_outside = False
     elif msg.topic == 'door/outer/buzzer':
         polarity = random.choice([1] * 9 + [-1])
         send_to_bot("Buzzer"[::polarity])
