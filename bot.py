@@ -1,6 +1,4 @@
-#!/usr/bin/python
-from __future__ import print_function
-
+#!./venv/bin/python
 import time
 import yaml
 import os
@@ -16,9 +14,8 @@ import paho.mqtt.client as mqtt
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-config_f = open('config.yaml')
-config = yaml.safe_load(config_f)
-config_f.close()
+with open('config.yaml') as config_f:
+    config = yaml.safe_load(config_f)
 
 def run_script(bot, update):
     tmp_cmd = update.message.text.split(" ", 1)
@@ -68,7 +65,7 @@ def send_to_bot(message, increment=False):
     else:
         m = u.bot.sendMessage(chat_id=config['telegram']['chat_id'], text=message, parse_mode=ParseMode.MARKDOWN, disable_notification=True)
         lastmsg = (message, m.message_id, 2, time.time())
- 
+
 _someone_waiting_outside = False
 
 def on_message(mosq, obj, msg):
@@ -82,25 +79,19 @@ def on_message(mosq, obj, msg):
         end_to_bot("Unknown card at door", increment = True)
     elif msg.topic == 'bot/outgoing':
         send_to_bot(msg.payload.decode('utf-8'))
-    elif msg.topic == 'door/shutter/state/open':
-        send_to_bot("Shutter Opened!", increment = True)
-    elif msg.topic == 'door/shutter/state/closed':
-        send_to_bot("Shutter Closed!", increment = True)
     elif msg.topic == 'door/outer' and msg.payload == 'opened' and _someone_waiting_outside:
         send_to_bot("Door opened")
         _someone_waiting_outside = False
 
 mqttc = mqtt.Client(config['mqtt']['name'])
-while True:
-    mqttc.connect(config['mqtt']['server'])
-    mqttc.subscribe("door/outer")
-    mqttc.subscribe("door/outer/#")
-    mqttc.subscribe("bot/outgoing")
-    mqttc.subscribe("door/shutter/state/#")
-    mqttc.on_message = on_message
 
-    while mqttc.loop(0.1) == 0:
-        pass
-    print ("MQTT connection lost!")
-    mqttc.disconnect()
-    time.sleep(5)
+mqttc.will_set("system/%s/state" % config['mqtt']['name'], payload='offline', qos=0, retain=True)
+mqttc.connect(config['mqtt']['server'])
+mqttc.subscribe("door/outer")
+mqttc.subscribe("door/outer/#")
+mqttc.subscribe("bot/outgoing")
+mqttc.on_message = on_message
+
+mqttc.publish("system/%s/state" % config['mqtt']['name'], payload='online', qos=0, retain=True)
+
+mqttc.loop_forever()
