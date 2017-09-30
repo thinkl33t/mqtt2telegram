@@ -7,9 +7,11 @@ import os
 import re
 import subprocess
 import logging
+import random
 
-from telegram import Updater,Bot,ParseMode, ChatAction
-import mosquitto
+from telegram.ext import Updater, CommandHandler
+from telegram import ParseMode, ChatAction
+import paho.mqtt.client as mqtt
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -51,38 +53,44 @@ def run_script(bot, update):
                     if proc.poll() != None:
                         break
 
-bot = Bot(config['telegram']['token'])
-u = Updater(bot=bot)
+u = Updater(config['telegram']['token'])
 for file in os.listdir('scripts/'):
     command = file.split('.', 1)
-    u.dispatcher.addTelegramCommandHandler(command[0], run_script)
+    u.dispatcher.add_handler(CommandHandler(command[0], run_script))
 u.start_polling()
 
-def send_to_bot(message):
-    global bot, config
-    bot.sendMessage(chat_id=config['telegram']['chat_id'], text=message, parse_mode=ParseMode.MARKDOWN, disable_notification=True)
-    
+lastmsg = ("", 0, 2, 0) # txt, id, counter, time
+def send_to_bot(message, increment=False):
+    global u, config, lastmsg
+    if lastmsg[0] == message and time.time() - lastmsg[3] < 60 and increment == True:
+        u.bot.editMessageText(chat_id=config['telegram']['chat_id'], message_id=lastmsg[1], text="{} ({})".format(message, lastmsg[2]), parse_mode=ParseMode.MARKDOWN)
+        lastmsg = (lastmsg[0], lastmsg[1], lastmsg[2] + 1, time.time())
+    else:
+        m = u.bot.sendMessage(chat_id=config['telegram']['chat_id'], text=message, parse_mode=ParseMode.MARKDOWN, disable_notification=True)
+        lastmsg = (message, m.message_id, 2, time.time())
+ 
 _someone_waiting_outside = False
+
 def on_message(mosq, obj, msg):
     global _someone_waiting_outside
     if msg.topic == 'door/outer/opened/username':
-        send_to_bot("*%s* opened the outer door." % msg.payload)
+        send_to_bot("*%s* opened the outer door." % msg.payload.decode('utf-8'), increment = (msg.payload != b'MANUAL OVERRIDE KEY'))
     elif msg.topic == 'door/outer/buzzer':
-        send_to_bot("%s" % random.choice(['Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'rezzuB']))
+        send_to_bot("%s" % random.choice(['Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'rezzuB']), increment = True)
         _someone_waiting_outside = True
     elif msg.topic == 'door/outer/invalidcard':
-        send_to_bot("Unknown card at door")
+        end_to_bot("Unknown card at door", increment = True)
     elif msg.topic == 'bot/outgoing':
-        send_to_bot(msg.payload)
+        send_to_bot(msg.payload.decode('utf-8'))
     elif msg.topic == 'door/shutter/state/open':
-        send_to_bot("Shutter Opened!")
+        send_to_bot("Shutter Opened!", increment = True)
     elif msg.topic == 'door/shutter/state/closed':
-        send_to_bot("Shutter Closed!")
+        send_to_bot("Shutter Closed!", increment = True)
     elif msg.topic == 'door/outer' and msg.payload == 'opened' and _someone_waiting_outside:
         send_to_bot("Door opened")
         _someone_waiting_outside = False
 
-mqttc = mosquitto.Mosquitto(config['mqtt']['name'])
+mqttc = mqtt.Client(config['mqtt']['name'])
 while True:
     mqttc.connect(config['mqtt']['server'])
     mqttc.subscribe("door/outer")
