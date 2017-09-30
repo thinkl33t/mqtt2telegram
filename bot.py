@@ -72,8 +72,8 @@ def on_message(mosq, obj, msg):
     global _someone_waiting_outside
     if msg.topic == 'door/outer/opened/username':
         send_to_bot("*%s* opened the outer door." % msg.payload.decode('utf-8'), increment = (msg.payload != b'MANUAL OVERRIDE KEY'))
-    elif msg.topic == 'door/outer/buzzer':
-        send_to_bot("%s" % random.choice(['Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'rezzuB']), increment = True)
+    elif msg.topic == 'door/outer/doorbell':
+        send_to_bot("%s" % random.choice(['Doorbell'] * 20 + ['llebrooD']), increment = True)
         _someone_waiting_outside = True
     elif msg.topic == 'door/outer/invalidcard':
         end_to_bot("Unknown card at door", increment = True)
