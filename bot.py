@@ -79,7 +79,7 @@ def on_message(mosq, obj, msg):
         end_to_bot("Unknown card at door", increment = True)
     elif msg.topic == 'bot/outgoing':
         send_to_bot(msg.payload.decode('utf-8'))
-    elif msg.topic == 'door/outer' and msg.payload == 'opened' and _someone_waiting_outside:
+    elif msg.topic == 'door/outer/state' and msg.payload == 'opened' and _someone_waiting_outside:
         send_to_bot("Door opened")
         _someone_waiting_outside = False
 
@@ -87,7 +87,6 @@ mqttc = mqtt.Client(config['mqtt']['name'])
 
 mqttc.will_set("system/%s/state" % config['mqtt']['name'], payload='offline', qos=0, retain=True)
 mqttc.connect(config['mqtt']['server'])
-mqttc.subscribe("door/outer")
 mqttc.subscribe("door/outer/#")
 mqttc.subscribe("bot/outgoing")
 mqttc.on_message = on_message
