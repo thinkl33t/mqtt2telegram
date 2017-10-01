@@ -82,6 +82,13 @@ def on_message(mosq, obj, msg):
     elif msg.topic == 'door/outer/state' and msg.payload == 'opened' and _someone_waiting_outside:
         send_to_bot("Door opened")
         _someone_waiting_outside = False
+    elif msg.topic == 'system/alfred_outer/state':
+        if msg.payload == 'offline':
+            send_to_bot("Alfred fell over 😢")
+        else:
+            send_to_bot("Alfred came back 😊")
+
+
 
 mqttc = mqtt.Client(config['mqtt']['name'])
 
@@ -89,8 +96,9 @@ mqttc.will_set("system/%s/state" % config['mqtt']['name'], payload='offline', qo
 mqttc.connect(config['mqtt']['server'])
 mqttc.subscribe("door/outer/#")
 mqttc.subscribe("bot/outgoing")
+mqttc.subscribe("system/alfred_outer/state")
 mqttc.on_message = on_message
-
 mqttc.publish("system/%s/state" % config['mqtt']['name'], payload='online', qos=0, retain=True)
+send_to_bot("I was restarted for some reason!")
 
 mqttc.loop_forever()
