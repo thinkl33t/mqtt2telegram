@@ -92,13 +92,13 @@ def on_message(mosq, obj, msg):
 
 mqttc = mqtt.Client(config['mqtt']['name'])
 
-mqttc.will_set("system/%s/state" % config['mqtt']['name'], payload='offline', qos=0, retain=True)
+mqttc.will_set("system/%s/state" % config['mqtt']['name'], payload='offline', qos=2, retain=True)
 mqttc.connect(config['mqtt']['server'])
 mqttc.subscribe("door/outer/#")
 mqttc.subscribe("bot/outgoing")
 mqttc.subscribe("system/alfred_outer/state")
 mqttc.on_message = on_message
-mqttc.publish("system/%s/state" % config['mqtt']['name'], payload='online', qos=0, retain=True)
+mqttc.publish("system/%s/state" % config['mqtt']['name'], payload='online', qos=2, retain=True)
 send_to_bot("I was restarted for some reason!")
 
 mqttc.loop_forever()
