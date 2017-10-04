@@ -71,6 +71,8 @@ _someone_waiting_outside = False
 def on_message(mosq, obj, msg):
     global _someone_waiting_outside
     if msg.topic == 'door/outer/opened/username':
+        if(msg.payload == 'MANUAL OVERRIDE KEY')
+            _someone_waiting_outside = True
         send_to_bot("*%s* opened the outer door." % msg.payload.decode('utf-8'), increment = (msg.payload != b'MANUAL OVERRIDE KEY'))
     elif msg.topic == 'door/outer/doorbell':
         send_to_bot("%s" % random.choice(['Doorbell'] * 20 + ['llebrooD']), increment = True)
