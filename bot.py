@@ -67,13 +67,15 @@ def send_to_bot(message, increment=False):
         lastmsg = (message, m.message_id, 2, time.time())
 
 _announce_next_open = False
+_reversed = False
 
 def on_message(mosq, obj, msg):
-    global _announce_next_open
+    global _announce_next_open, _reversed
     if msg.topic == 'door/outer/opened/username':
         send_to_bot("*%s* opened the outer door." % msg.payload.decode('utf-8'), increment = True)
     elif msg.topic == 'door/outer/doorbell':
-        send_to_bot("%s" % random.choice(['Doorbell'] * 20 + ['llebrooD']), increment = True)
+        _reversed = random.choice([False] * 20 + [True])
+        send_to_bot("Doorbell"[::-1 if _reversed else 1], increment = True)
         _announce_next_open = True
     elif msg.topic == 'door/outer/invalidcard':
         send_to_bot("Unknown card at door", increment = True)
@@ -83,7 +85,8 @@ def on_message(mosq, obj, msg):
     elif msg.topic == 'bot/outgoing':
         send_to_bot(msg.payload.decode('utf-8'))
     elif msg.topic == 'door/outer/state' and msg.payload == b'opened' and _announce_next_open:
-        send_to_bot("Door opened")
+        send_to_bot("Door opened"[::-1 if _reversed else 1])
+        _reversed = False
         _announce_next_open = False
     elif msg.topic == 'system/alfred_outer/state':
         if msg.payload == b'offline':
