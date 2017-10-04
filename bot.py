@@ -82,11 +82,11 @@ def on_message(mosq, obj, msg):
         _announce_next_open = True
     elif msg.topic == 'bot/outgoing':
         send_to_bot(msg.payload.decode('utf-8'))
-    elif msg.topic == 'door/outer/state' and msg.payload == 'opened' and _announce_next_open:
+    elif msg.topic == 'door/outer/state' and msg.payload == b'opened' and _announce_next_open:
         send_to_bot("Door opened")
         _announce_next_open = False
     elif msg.topic == 'system/alfred_outer/state':
-        if msg.payload == 'offline':
+        if msg.payload == b'offline':
             send_to_bot("Alfred fell over 😢")
         else:
             send_to_bot("Alfred came back 😊")
