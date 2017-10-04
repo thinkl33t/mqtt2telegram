@@ -71,7 +71,7 @@ _someone_waiting_outside = False
 def on_message(mosq, obj, msg):
     global _someone_waiting_outside
     if msg.topic == 'door/outer/opened/username':
-        if(msg.payload == 'MANUAL OVERRIDE KEY')
+        if(msg.payload == b'MANUAL OVERRIDE KEY')
             _someone_waiting_outside = True
         send_to_bot("*%s* opened the outer door." % msg.payload.decode('utf-8'), increment = (msg.payload != b'MANUAL OVERRIDE KEY'))
     elif msg.topic == 'door/outer/doorbell':
@@ -81,11 +81,11 @@ def on_message(mosq, obj, msg):
         end_to_bot("Unknown card at door", increment = True)
     elif msg.topic == 'bot/outgoing':
         send_to_bot(msg.payload.decode('utf-8'))
-    elif msg.topic == 'door/outer/state' and msg.payload == 'opened' and _someone_waiting_outside:
+    elif msg.topic == 'door/outer/state' and msg.payload == b'opened' and _someone_waiting_outside:
         send_to_bot("Door opened")
         _someone_waiting_outside = False
     elif msg.topic == 'system/alfred_outer/state':
-        if msg.payload == 'offline':
+        if msg.payload == b'offline':
             send_to_bot("Alfred fell over 😢")
         else:
             send_to_bot("Alfred came back 😊")
