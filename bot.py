@@ -66,25 +66,25 @@ def send_to_bot(message, increment=False):
         m = u.bot.sendMessage(chat_id=config['telegram']['chat_id'], text=message, parse_mode=ParseMode.MARKDOWN, disable_notification=True)
         lastmsg = (message, m.message_id, 2, time.time())
 
-_someone_waiting_outside = False
+_announce_next_open = False
 
 def on_message(mosq, obj, msg):
-    global _someone_waiting_outside
+    global _announce_next_open
     if msg.topic == 'door/outer/opened/username':
         send_to_bot("*%s* opened the outer door." % msg.payload.decode('utf-8'), increment = True)
     elif msg.topic == 'door/outer/doorbell':
         send_to_bot("%s" % random.choice(['Doorbell'] * 20 + ['llebrooD']), increment = True)
-        _someone_waiting_outside = True
+        _announce_next_open = True
     elif msg.topic == 'door/outer/invalidcard':
         send_to_bot("Unknown card at door", increment = True)
     elif msg.topic == 'door/outer/opened/key':
         send_to_bot("*Door opened with manual override key*")
-        _someone_waiting_outside = True
+        _announce_next_open = True
     elif msg.topic == 'bot/outgoing':
         send_to_bot(msg.payload.decode('utf-8'))
-    elif msg.topic == 'door/outer/state' and msg.payload == 'opened' and _someone_waiting_outside:
+    elif msg.topic == 'door/outer/state' and msg.payload == 'opened' and _announce_next_open:
         send_to_bot("Door opened")
-        _someone_waiting_outside = False
+        _announce_next_open = False
     elif msg.topic == 'system/alfred_outer/state':
         if msg.payload == 'offline':
             send_to_bot("Alfred fell over 😢")
