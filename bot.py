@@ -80,7 +80,7 @@ def on_message(mosq, obj, msg):
     elif msg.topic == 'door/outer/invalidcard':
         send_to_bot("Unknown card at door", increment = True)
     elif msg.topic == 'door/outer/opened/key':
-        send_to_bot("*Door opened with manual override key*")
+        send_to_bot("🚨 *Door opened with manual override key*")
         _announce_next_open = True
     elif msg.topic == 'bot/outgoing':
         send_to_bot(msg.payload.decode('utf-8'))
