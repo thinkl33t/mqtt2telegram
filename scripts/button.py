@@ -1,11 +1,11 @@
 #!../venv/bin/python
 
-import sys
+import os
 import paho.mqtt.client as mqtt
+import yaml
+
 from telegram.ext import Updater, CommandHandler
 from telegram import ParseMode, ChatAction
-
-print (sys.argv[1:])
 
 with open('config.yaml') as config_f:
     config = yaml.safe_load(config_f)
