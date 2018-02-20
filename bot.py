@@ -98,6 +98,8 @@ def on_message(mosq, obj, msg):
 
 mqttc = mqtt.Client(config['mqtt']['name'])
 
+send_to_bot("Bot was restarted for some reason 😕")
+
 while True:
     mqttc.will_set("system/%s/state" % config['mqtt']['name'], payload='offline', qos=2, retain=True)
     mqttc.connect(config['mqtt']['server'])
@@ -106,7 +108,6 @@ while True:
     mqttc.subscribe("system/alfred_outer/state")
     mqttc.on_message = on_message
     mqttc.publish("system/%s/state" % config['mqtt']['name'], payload='online', qos=2, retain=True)
-    send_to_bot("Bot was restarted for some reason 😕")
     
     while mqttc.loop(0.1) == 0:
         pass
